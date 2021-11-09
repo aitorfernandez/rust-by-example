@@ -1,0 +1,13 @@
+*.pid
+*.swo
+*.swp
+*.tmp
+.DS_Store
+.tags
+
+debug/
+target/
+
+Cargo.lock
+
+**/*.rs.bk
