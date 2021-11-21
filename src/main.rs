@@ -222,7 +222,9 @@ fn main() {
         impl Message {
             fn call(&self) {
                 match self {
-                    Message::Write(s) => println!("Enum ::Write {}", s),
+                    // Message::Write(s) => println!("Enum ::Write {}", s),
+                    // or
+                    Self::Write(s) => println!("Enum ::Write {}", s), // Self means the type
                     _ => println!("other variant"),
                     // or
                     // _ => (),
@@ -280,7 +282,7 @@ fn main() {
     {
         // https://www.cs.brandeis.edu/~cs146a/rust/doc-02-21-2015/book/crates-and-modules.html
     }
-    // Vectors
+    // Vectors, a heap-allocated array
     {
         let v = vec![100, 32, 5];
         for i in &v {
@@ -346,4 +348,71 @@ fn main() {
             Ok("ok".to_string())
         }
     }
+    // Generic Types
+    {
+        fn point<T, U>(x: T, y: U) {
+            // ...
+        }
+        // With trait
+        fn point_with_trait<T: PartialOrd + Copy>(x: T) {
+            // ...
+        }
+        // Struct
+        struct Point<T, U> {
+            x: T,
+            y: U,
+        }
+        // In method definition
+        impl<T, U> Point<T, U> {
+            fn x(&self) -> &T {
+                &self.x
+            }
+            fn mix<V, W>(self, other: Point<V, W>) -> Point<T, W> {
+                Point {
+                    x: self.x,
+                    y: other.y,
+                }
+            }
+        }
+    }
+    // Traits
+    {
+        struct Tweet {
+            username: String,
+            valid: bool,
+        }
+        trait Summary {
+            fn summarize(&self) -> String;
+        }
+        impl Summary for Tweet {
+            fn summarize(&self) -> String {
+                format!("Tweet by {}, valid {}", self.username, self.valid)
+            }
+        }
+        // Trait as parameter
+        // We can define a notify function that calls the summarize method on its item parameter,
+        // which is of some type that implements the Summary trait
+        // fn notify(item: &impl Summary) {
+        // or
+        fn notify<T: Summary>(item: &T) {
+            println!("Trait summary {}", item.summarize());
+        }
+        // or
+        fn multiple_items<T: Summary>(item1: &T, item2: &T) {
+            // ...
+        }
+        // or
+        fn multiple_traits<T: Summary + std::fmt::Display>(item: &T) {
+            // ...
+        }
+        // returning types
+        fn returns_summarizable() -> impl Summary {
+            Tweet {
+                username: String::from("foo"),
+                valid: true,
+            }
+        }
+    }
+    // References with lifetime
+    {}
 }
