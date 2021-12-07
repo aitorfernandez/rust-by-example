@@ -1,7 +1,8 @@
-use email_newsletter::configuration::get_configuration;
+use email_newsletter::configuration::{get_configuration, DatabaseSettings};
 use email_newsletter::startup::run;
-use sqlx::PgPool;
+use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
+use uuid::Uuid;
 
 pub struct TestApp {
     pub address: String,
@@ -90,10 +91,9 @@ async fn spawn_app() -> TestApp {
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{}", port);
 
-    let configuration = get_configuration().expect("Failed to read configuration");
-    let pool = PgPool::connect(&configuration.database.connection_string())
-        .await
-        .expect("Failed to connect to Postgres");
+    let mut configuration = get_configuration().expect("Failed to read configuration");
+    configuration.database.db = Uuid::new_v4().to_string();
+    let pool = configure_database(&configuration.database).await;
 
     let server = run(listener, pool.clone()).expect("Failed to bind address");
     let _ = tokio::spawn(server);
@@ -102,4 +102,24 @@ async fn spawn_app() -> TestApp {
         address,
         pool: pool,
     }
+}
+
+async fn configure_database(config: &DatabaseSettings) -> PgPool {
+    let mut connection = PgConnection::connect(&config.connection_string_without_db())
+        .await
+        .expect("Failed to connect to Postgres");
+    connection
+        .execute(format!(r#"create database "{}";"#, config.db).as_str())
+        .await
+        .expect("Failed to create database");
+
+    // Migrate database
+    let pool = PgPool::connect(&config.connection_string())
+        .await
+        .expect("Failed to connect to Postgres.");
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .expect("Failed to migrate the database");
+    pool
 }
