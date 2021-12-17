@@ -122,4 +122,14 @@ fn main() {
             (r, _, _) => println!("it's red"),
         }
     }
+    // Structs
+    {
+        struct Colour(u8, u8, u8); // Tuple struct
+        struct SizeAndColour {
+            size: u32,
+            colour: Colour,
+        }
+        let colour = Colour(0, 0, 0);
+        let black = SizeAndColour { size: 0, colour };
+    }
 }
