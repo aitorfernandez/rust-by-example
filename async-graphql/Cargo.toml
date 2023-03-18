@@ -1,0 +1,17 @@
+[package]
+name = "async-graphql-example"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path = "src/main.rs"
+name = "api"
+
+[dependencies]
+actix-cors = "0.6.1"
+actix-web = "4.2.1"
+async-graphql = { version = "4.0.14", features = ["chrono"] }
+async-graphql-actix-web = "4.0.14"
