@@ -1,4 +1,5 @@
 use reqwest::{Client, StatusCode};
+use tracing::{error, instrument};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ApiClientError {
@@ -12,6 +13,7 @@ pub enum ApiClientError {
     ReqwestError(#[from] reqwest::Error),
 }
 
+#[derive(Debug)]
 pub struct ApiClient {
     client: Client,
 }
@@ -23,6 +25,7 @@ impl ApiClient {
         }
     }
 
+    #[instrument(level = "info")]
     pub async fn make_request(&self, url: &str) -> Result<serde_json::Value, ApiClientError> {
         let res = self.client.get(url).send().await?;
 
