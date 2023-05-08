@@ -1,17 +1,6 @@
-use reqwest::{Client, StatusCode};
-use tracing::{error, instrument};
-
-#[derive(Debug, thiserror::Error)]
-pub enum ApiClientError {
-    #[error("Resource not found")]
-    NotFound,
-    #[error("Bad status code: {0}")]
-    UnexpectedStatusCode(StatusCode),
-    #[error("Serialization/deserialization error: {0}")]
-    SerdeError(#[from] serde_json::Error),
-    #[error("Reqwest error: {0}")]
-    ReqwestError(#[from] reqwest::Error),
-}
+use crate::error::ApiClientError;
+use reqwest::{Client, Method, StatusCode};
+use tracing::instrument;
 
 #[derive(Debug)]
 pub struct ApiClient {
@@ -26,8 +15,12 @@ impl ApiClient {
     }
 
     #[instrument(level = "info")]
-    pub async fn make_request(&self, url: &str) -> Result<serde_json::Value, ApiClientError> {
-        let res = self.client.get(url).send().await?;
+    pub async fn make_request(
+        &self,
+        method: Method,
+        url: &str,
+    ) -> Result<serde_json::Value, ApiClientError> {
+        let res = self.client.request(method, url).send().await?;
 
         match res.status() {
             StatusCode::OK => {

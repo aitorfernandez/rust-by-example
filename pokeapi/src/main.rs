@@ -1,4 +1,6 @@
 mod api_client;
+mod error;
+mod fun_translation;
 mod handler;
 mod pokemon_specie;
 
